@@ -12,7 +12,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [ ]
 
-test_requirements = [ ]
+test_requirements = ['pytest', 'ddt']
 
 setup(
     author="Alexis Jeandet",
