@@ -1,0 +1,11 @@
+sphinx-rtd-theme
+argh
+numpydoc
+sphinx-gallery
+nbsphinx
+ipympl
+ipywidgets
+sphinx-codeautolink
+astropy
+pandas
+sphinxcontrib-apidoc
