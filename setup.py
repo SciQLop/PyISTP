@@ -35,7 +35,7 @@ setup(
     include_package_data=True,
     keywords='pyistp',
     name='pyistp',
-    packages=find_packages(include=['pyistp', 'pyistp.*']),
+    packages=find_packages(exclude=['tests', 'examples', 'doc']),
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/SciQLop/PyISTP',
