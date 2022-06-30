@@ -12,8 +12,7 @@ current_path = os.path.dirname(__file__)
 
 test_data = (
     (f"{current_path}/resources/wi_k0_mfi_20220101_v01.cdf", [
-        "PGSM", "BGSEc", "BF1", "PGSE", "N", "MODE", "BGSMa", "Time_PB5", "DIST", "BGSEa", "BGSMc", "RMS", "DQF",
-        "Gap_Flag"]),
+        "PGSM", "BGSEc", "BF1", "PGSE", "BGSMa", "DIST", "BGSEa", "BGSMc", "RMS"]),
 )
 
 

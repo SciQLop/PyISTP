@@ -19,3 +19,11 @@ class Driver:
         if self.cdf:
             return self.cdf[var].attrs.keys()
         return []
+
+    def variable_attribute_value(self, var, attr):
+        if self.cdf and var in self.cdf and attr in self.cdf[var].attrs:
+            return self.cdf[var].attrs[attr][0]
+        return None
+
+    def values(self, var):
+        return self.cdf[var][:]
