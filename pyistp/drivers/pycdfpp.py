@@ -10,6 +10,11 @@ class Driver:
             return self.cdf.attributes.keys()
         return []
 
+    def attribute(self, key):
+        if self.cdf:
+            return self.cdf.attributes[key]
+        return None
+
     def variables(self):
         if self.cdf:
             return list(self.cdf)

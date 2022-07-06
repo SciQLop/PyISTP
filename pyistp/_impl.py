@@ -36,6 +36,12 @@ class ISTPLoaderImpl:
         self.data_variables = []
         self._update_data_vars_lis()
 
+    def attributes(self):
+        return self.cdf.attributes()
+
+    def attribute(self, key):
+        return self.cdf.attribute(key)
+
     def _update_data_vars_lis(self):
         if self.cdf:
             self.data_variables = []
