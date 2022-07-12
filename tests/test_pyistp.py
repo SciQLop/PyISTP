@@ -5,7 +5,7 @@
 import unittest
 from ddt import ddt, data, unpack
 
-from pyistp import ISTPLoader
+import pyistp
 import os
 
 current_path = os.path.dirname(__file__)
@@ -56,6 +56,8 @@ test_data = (
       "tha_peir_en_eflux", "tha_peer_velocity_dsl", "tha_peir_magt3", "tha_peib_symm_angQ", "tha_peir_velocity_gseQ",
       "tha_peir_symm_ang", "tha_peir_velocity_dsl", "tha_peeb_ptensQ", "tha_peir_velocity_gsm", "tha_peer_density",
       "tha_peer_vthermal", "tha_peer_ptens", "tha_peeb_magfQ"]),
+    (f"{current_path}/resources/thd_l2_efi_00000000_v01.cdf",
+     ["DENSITYSTD", "DENSITY"]),
 )
 
 
@@ -71,24 +73,24 @@ class TestPyIstp(unittest.TestCase):
     @data(*test_data)
     @unpack
     def test_finds_data_variables(self, fname, data_vars):
-        istp_loader = ISTPLoader(file=fname)
-        self.assertListEqual(sorted(data_vars), sorted(istp_loader.data_variables()))
+        istp_file = pyistp.load(file=fname)
+        self.assertListEqual(sorted(data_vars), sorted(istp_file.data_variables()))
 
     @data(*test_data)
     @unpack
     def test_can_load_all_data_vars(self, fname, data_vars):
-        istp_loader = ISTPLoader(file=fname)
-        self.assertGreater(len(istp_loader.data_variables()), 0)
-        for varname in istp_loader.data_variables():
-            var = istp_loader.data_variable(var_name=varname)
+        istp_file = pyistp.load(file=fname)
+        self.assertGreater(len(istp_file.data_variables()), 0)
+        for varname in istp_file.data_variables():
+            var = istp_file.data_variable(var_name=varname)
             self.assertIsNotNone(var)
             self.assertGreaterEqual(len(var.axes), 1)
 
     @data(*test_data)
     @unpack
     def test_can_access_global_attrs(self, fname, data_vars):
-        istp_loader = ISTPLoader(file=fname)
-        self.assertGreater(len(istp_loader.attributes()), 0)
-        for attrname in istp_loader.attributes():
-            attr = istp_loader.attribute(attrname)
+        istp_file = pyistp.load(file=fname)
+        self.assertGreater(len(istp_file.attributes()), 0)
+        for attrname in istp_file.attributes():
+            attr = istp_file.attribute(attrname)
             self.assertIsNotNone(attr)
