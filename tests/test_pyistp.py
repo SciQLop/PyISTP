@@ -57,7 +57,8 @@ test_data = (
       "tha_peir_symm_ang", "tha_peir_velocity_dsl", "tha_peeb_ptensQ", "tha_peir_velocity_gsm", "tha_peer_density",
       "tha_peer_vthermal", "tha_peer_ptens", "tha_peeb_magfQ"]),
     (f"{current_path}/resources/thd_l2_efi_00000000_v01.cdf",
-     ["DENSITYSTD", "DENSITY"]),
+     ['thd_eff_e34_efs', 'thd_eff_q_mag', 'thd_efs_dot0_gsm', 'thd_efs_dot0_dsl', 'thd_efs_dot0_gse', 'thd_eff_q_pha',
+      'thd_eff_dot0_gse', 'thd_eff_e12_efs', 'thd_eff_dot0_dsl', 'thd_eff_dot0_gsm']),
 )
 
 

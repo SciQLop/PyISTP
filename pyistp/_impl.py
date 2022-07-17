@@ -1,6 +1,9 @@
 from .drivers import current_driver
 from .data_variable import DataVariable
 from .support_data_variable import SupportDataVariable
+import re
+
+DEPEND_REGEX = re.compile("DEPEND_\\d")
 
 
 def _get_attributes(cdf: object, var: str):
@@ -18,7 +21,7 @@ def _get_axis(cdf: object, var: str):
 
 
 def _get_axes(cdf: object, var: str):
-    attrs = sorted(filter(lambda attr: attr.startswith('DEPEND_'), cdf.variable_attributes(var)))
+    attrs = sorted(filter(lambda attr: DEPEND_REGEX.match(attr), cdf.variable_attributes(var)))
     axes = list(map(lambda attr: _get_axis(cdf, cdf.variable_attribute_value(var, attr)), attrs))
     return axes
 
