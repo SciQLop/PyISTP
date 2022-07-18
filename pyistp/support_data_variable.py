@@ -6,6 +6,9 @@ class SupportDataVariable:
         self.values = values
         self.attributes = attributes
 
+    def __len__(self):
+        return len(self.values)
+
     def __repr__(self):
         return f"""SupportDataVariable: {self.name}
 Attributes:
