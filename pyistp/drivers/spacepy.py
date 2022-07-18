@@ -1,9 +1,17 @@
 from spacepy import pycdf
+import numpy as np
+from tempfile import NamedTemporaryFile
 
 
 class Driver:
     def __init__(self, file):
-        self.cdf = pycdf.CDF(file)
+        if type(file) is bytes:
+            self._tmpfile = NamedTemporaryFile()
+            self._tmpfile.write(file)
+            self._tmpfile.flush()
+            self.cdf = pycdf.CDF(self._tmpfile.name)
+        else:
+            self.cdf = pycdf.CDF(file)
 
     def attributes(self):
         if self.cdf:
@@ -27,8 +35,11 @@ class Driver:
 
     def variable_attribute_value(self, var, attr):
         if self.cdf and var in self.cdf and attr in self.cdf[var].attrs:
-            return self.cdf[var].attrs[attr][0]
+            return self.cdf[var].attrs[attr]
         return None
 
     def values(self, var):
-        return self.cdf[var][:]
+        v = self.cdf[var]
+        if v.type() in (pycdf.const.CDF_EPOCH, pycdf.const.CDF_EPOCH16, pycdf.const.CDF_TIME_TT2000):
+            return np.vectorize(np.datetime64)(v[:])
+        return v[:]
