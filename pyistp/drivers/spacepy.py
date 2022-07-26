@@ -33,6 +33,9 @@ class Driver:
             return self.cdf[var].attrs.keys()
         return []
 
+    def is_char(self,var):
+        return self.cdf[var].type() == pycdf.const.CDF_CHAR
+
     def variable_attribute_value(self, var, attr):
         if self.cdf and var in self.cdf and attr in self.cdf[var].attrs:
             return self.cdf[var].attrs[attr]
