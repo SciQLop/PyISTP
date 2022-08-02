@@ -82,8 +82,8 @@ class ISTPLoaderImpl:
             for var in self.cdf.variables():
                 var_attrs = self.cdf.variable_attributes(var)
                 var_type = self.cdf.variable_attribute_value(var, 'VAR_TYPE')
-                param_type = self.cdf.variable_attribute_value(var,
-                                                               'PARAMETER_TYPE').lower()  # another cluster CSA crap
+                param_type = (self.cdf.variable_attribute_value(var,
+                                                                'PARAMETER_TYPE') or "").lower()  # another cluster CSA crap
                 if (var_type == 'data' or param_type == 'data') and not self.cdf.is_char(var):
                     self.data_variables.append(var)
 
