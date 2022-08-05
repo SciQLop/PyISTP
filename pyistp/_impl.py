@@ -36,7 +36,7 @@ def _get_axes(cdf: object, var: str):
     attrs = sorted(filter(lambda attr: DEPEND_REGEX.match(attr), cdf.variable_attributes(var)))
     unix_time_name = cdf.variable_attribute_value(var, "DEPEND_TIME")
     axes = list(map(lambda attr: _get_axis(cdf, cdf.variable_attribute_value(var, attr)), attrs))
-    if unix_time_name is not None:
+    if unix_time_name is not None and unix_time_name in cdf.variables():
         unix_time = _get_axis(cdf, unix_time_name)
         if len(unix_time) > len(axes[0]):
             unix_time.values = (unix_time.values * 1e9).astype('<M8[ns]')
