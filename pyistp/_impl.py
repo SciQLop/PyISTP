@@ -27,18 +27,16 @@ def _get_axis(cdf: object, var: str):
         if 'sig_digits' in cdf.variable_attributes(var):  # cluster CSA trick :/
             return SupportDataVariable(name=var, values=np.asarray(cdf.values(var), dtype=float),
                                        attributes=_get_attributes(cdf, var))
-        else:
-            return None
     return SupportDataVariable(name=var, values=cdf.values(var), attributes=_get_attributes(cdf, var))
 
 
-def _get_axes(cdf: object, var: str):
+def _get_axes(cdf: object, var: str, data_shape):
     attrs = sorted(filter(lambda attr: DEPEND_REGEX.match(attr), cdf.variable_attributes(var)))
     unix_time_name = cdf.variable_attribute_value(var, "DEPEND_TIME")
     axes = list(map(lambda attr: _get_axis(cdf, cdf.variable_attribute_value(var, attr)), attrs))
     if unix_time_name is not None and unix_time_name in cdf.variables():
         unix_time = _get_axis(cdf, unix_time_name)
-        if len(unix_time) > len(axes[0]):
+        if len(unix_time) == data_shape[0]:
             unix_time.values = (unix_time.values * 1e9).astype('<M8[ns]')
             axes[0] = unix_time
             Warning(
@@ -54,7 +52,8 @@ def _get_labels(attributes) -> List[str]:
 
 
 def _load_data_var(cdf: object, var: str) -> DataVariable or None:
-    axes = _get_axes(cdf, var)
+    values = cdf.values(var)
+    axes = _get_axes(cdf, var, values.shape)
     attributes = _get_attributes(cdf, var)
     labels = _get_labels(attributes)
     if None in axes:
