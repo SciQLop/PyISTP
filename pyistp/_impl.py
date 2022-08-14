@@ -56,9 +56,9 @@ def _load_data_var(cdf: object, var: str) -> DataVariable or None:
     axes = _get_axes(cdf, var, values.shape)
     attributes = _get_attributes(cdf, var)
     labels = _get_labels(attributes)
-    if None in axes:
+    if None in axes or axes[0].values.shape[0] != values.shape[0]:
         return None
-    return DataVariable(name=var, values=cdf.values(var), attributes=attributes, axes=axes, labels=labels)
+    return DataVariable(name=var, values=values, attributes=attributes, axes=axes, labels=labels)
 
 
 class ISTPLoaderImpl:

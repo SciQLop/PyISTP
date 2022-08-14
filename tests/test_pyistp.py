@@ -58,7 +58,7 @@ test_data = (
       "tha_peer_vthermal", "tha_peer_ptens", "tha_peeb_magfQ"]),
     (f"{current_path}/resources/thd_l2_efi_00000000_v01.cdf",
      ['thd_eff_e34_efs', 'thd_eff_q_mag', 'thd_efs_dot0_gsm', 'thd_efs_dot0_dsl', 'thd_efs_dot0_gse', 'thd_eff_q_pha',
-      'thd_eff_dot0_gse', 'thd_eff_e12_efs', 'thd_eff_dot0_dsl', 'thd_eff_dot0_gsm']),
+      'thd_eff_dot0_gse', 'thd_eff_e12_efs', 'thd_eff_dot0_dsl', 'thd_eff_dot0_gsm'])
 )
 
 
@@ -95,3 +95,8 @@ class TestPyIstp(unittest.TestCase):
         for attrname in istp_file.attributes():
             attr = istp_file.attribute(attrname)
             self.assertIsNotNone(attr)
+
+    def test_files_generated_by_cda_with_empty_data(self):
+        istp_file = pyistp.load(file=f"{current_path}/resources/tha_l2s_fgm_CDA_NO_RECORDS.cdf")
+        self.assertIsNotNone(istp_file)
+        self.assertIsNone(istp_file.data_variable('tha_fge_dsl'))
