@@ -4,7 +4,7 @@ requires = ["flit_core"]
 
 [project]
 name = 'pyistp'
-version = "0.1.3"
+version = "0.2.0"
 description = "An easy to use ISTP loader package."
 keywords= ["satellite", "plasma-physics", "nasa-data", "amda", "cdpp", "CDF"]
 authors = [
