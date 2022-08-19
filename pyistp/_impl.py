@@ -4,30 +4,44 @@ from .support_data_variable import SupportDataVariable
 import re
 import numpy as np
 from typing import List
+import logging
 
 DEPEND_REGEX = re.compile("DEPEND_\\d")
+
+ISTP_NOT_COMPLIANT_W = "Non compliant ISTP file"
+
+log = logging.getLogger(__name__)
 
 
 def _get_attributes(cdf: object, var: str):
     attrs = {}
     for attr in cdf.variable_attributes(var):
+        value = cdf.variable_attribute_value(var, attr)
         if attr.endswith("_PTR") or attr[:-1].endswith("_PTR_"):
-            value = cdf.values(cdf.variable_attribute_value(var, attr))
-            if hasattr(value, 'tolist'):
-                attrs[attr] = value.tolist()
+            if cdf.has_variable(value):
+                value = cdf.values(value)
+                if hasattr(value, 'tolist'):
+                    attrs[attr] = value.tolist()
+                else:
+                    attrs[attr] = value
             else:
+                log.warning(
+                    f"{ISTP_NOT_COMPLIANT_W}: variable {var} has {attr} attribute which points to a variable which does not exist")
                 attrs[attr] = value
         else:
-            attrs[attr] = cdf.variable_attribute_value(var, attr)
+            attrs[attr] = value
     return attrs
 
 
 def _get_axis(cdf: object, var: str):
-    if cdf.is_char(var):
-        if 'sig_digits' in cdf.variable_attributes(var):  # cluster CSA trick :/
-            return SupportDataVariable(name=var, values=np.asarray(cdf.values(var), dtype=float),
-                                       attributes=_get_attributes(cdf, var))
-    return SupportDataVariable(name=var, values=cdf.values(var), attributes=_get_attributes(cdf, var))
+    if cdf.has_variable(var):
+        if cdf.is_char(var):
+            if 'sig_digits' in cdf.variable_attributes(var):  # cluster CSA trick :/
+                return SupportDataVariable(name=var, values=np.asarray(cdf.values(var), dtype=float),
+                                           attributes=_get_attributes(cdf, var))
+        return SupportDataVariable(name=var, values=cdf.values(var), attributes=_get_attributes(cdf, var))
+    log.warning(f"{ISTP_NOT_COMPLIANT_W}: trying to load {var} as support data but it is absent from the file")
+    return None
 
 
 def _get_axes(cdf: object, var: str, data_shape):
@@ -39,8 +53,8 @@ def _get_axes(cdf: object, var: str, data_shape):
         if len(unix_time) == data_shape[0]:
             unix_time.values = (unix_time.values * 1e9).astype('<M8[ns]')
             axes[0] = unix_time
-            Warning(
-                "Non compliant CDF file, swapping DEPEND_0 with DEPEND_TIME, if you think this is a bug report it here: https://github.com/SciQLop/PyISTP/issues")
+            log.warning(
+                f"{ISTP_NOT_COMPLIANT_W}: swapping DEPEND_0 with DEPEND_TIME, if you think this is a bug report it here: https://github.com/SciQLop/PyISTP/issues")
     return axes
 
 
@@ -56,6 +70,9 @@ def _load_data_var(cdf: object, var: str) -> DataVariable or None:
     axes = _get_axes(cdf, var, values.shape)
     attributes = _get_attributes(cdf, var)
     labels = _get_labels(attributes)
+    if len(axes) == 0:
+        log.warning(f"{ISTP_NOT_COMPLIANT_W}: {var} was marked as data variable but it has 0 support variable")
+        return None
     if None in axes or axes[0].values.shape[0] != values.shape[0]:
         return None
     return DataVariable(name=var, values=values, attributes=attributes, axes=axes, labels=labels)

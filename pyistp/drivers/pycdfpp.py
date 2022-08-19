@@ -20,7 +20,10 @@ class Driver:
             return list(self.cdf)
         return []
 
-    def is_char(self,var):
+    def has_variable(self, name):
+        return name in self.cdf
+
+    def is_char(self, var):
         return self.cdf[var].type == pycdfpp.CDF_CHAR
 
     def variable_attributes(self, var):

@@ -28,6 +28,9 @@ class Driver:
             return self.cdf.keys()
         return []
 
+    def has_variable(self, name):
+        return name in self.cdf
+
     def variable_attributes(self, var):
         if self.cdf:
             return self.cdf[var].attrs.keys()

@@ -58,7 +58,11 @@ test_data = (
       "tha_peer_vthermal", "tha_peer_ptens", "tha_peeb_magfQ"]),
     (f"{current_path}/resources/thd_l2_efi_00000000_v01.cdf",
      ['thd_eff_e34_efs', 'thd_eff_q_mag', 'thd_efs_dot0_gsm', 'thd_efs_dot0_dsl', 'thd_efs_dot0_gse', 'thd_eff_q_pha',
-      'thd_eff_dot0_gse', 'thd_eff_e12_efs', 'thd_eff_dot0_dsl', 'thd_eff_dot0_gsm'])
+      'thd_eff_dot0_gse', 'thd_eff_e12_efs', 'thd_eff_dot0_dsl', 'thd_eff_dot0_gsm']),
+    (f"{current_path}/resources/c3_cp_efw_l3_e3d_inert_00000000_v01.cdf",
+     ['delta_Ez_ISR2__C3_CP_EFW_L3_E3D_INERT', 'E_Vec_xyz_ISR2__C3_CP_EFW_L3_E3D_INERT',
+      'E_sigma__C3_CP_EFW_L3_E3D_INERT']
+     )
 )
 
 
