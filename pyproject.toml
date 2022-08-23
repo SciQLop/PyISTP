@@ -29,6 +29,6 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
 ]
-dependencies = ['pycdfpp']
+dependencies = ['pycdfpp', 'xarray']
 [project.urls]
 homepage = "https://github.com/SciQLop/PyISTP"

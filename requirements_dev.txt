@@ -1,3 +1,5 @@
+pycdfpp
+xarray
 pip
 bump2version
 wheel
@@ -8,5 +10,3 @@ coverage
 Sphinx
 twine
 ddt
-
-

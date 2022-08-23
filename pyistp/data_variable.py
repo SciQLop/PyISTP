@@ -1,3 +1,6 @@
+from xarray import DataArray
+
+
 class DataVariable:
     __slots__ = ("name", "values", 'attributes', 'axes', 'labels')
 
@@ -10,6 +13,20 @@ class DataVariable:
 
     def __len__(self):
         return len(self.values)
+
+    def to_xarray(self) -> DataArray:
+        axes = {ax.name: ax.values for ax in self.axes}
+        dims = [ax.name for ax in self.axes]
+        if len(self.values.shape) == 2 and len(axes) == 1:
+            axes['components'] = self.labels
+            dims.append('components')
+        return DataArray(
+            data=self.values,
+            dims=dims,
+            coords=axes,
+            name=self.name,
+            attrs=self.attributes
+        )
 
     def __repr__(self):
         return f"""DataVariable: {self.name}
