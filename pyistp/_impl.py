@@ -103,5 +103,5 @@ class ISTPLoaderImpl:
                 if (var_type == 'data' or param_type == 'data') and not self.cdf.is_char(var):
                     self.data_variables.append(var)
 
-    def data_variable(self, var_name):
+    def data_variable(self, var_name) -> DataVariable:
         return _load_data_var(self.cdf, var_name)

@@ -1,5 +1,5 @@
 from typing import List
-
+from .data_variable import DataVariable
 
 class ISTPLoader:
 
@@ -16,5 +16,5 @@ class ISTPLoader:
     def data_variables(self) -> List[str]:
         return self._impl.data_variables
 
-    def data_variable(self, var_name) -> List[str]:
+    def data_variable(self, var_name) -> DataVariable:
         return self._impl.data_variable(var_name)
