@@ -26,35 +26,38 @@ def _get_attributes(cdf: object, var: str):
                     attrs[attr] = value
             else:
                 log.warning(
-                    f"{ISTP_NOT_COMPLIANT_W}: variable {var} has {attr} attribute which points to a variable which does not exist")
+                    f"{ISTP_NOT_COMPLIANT_W}: variable {var} has {attr} attribute which points to variable {value} which does not exist")
                 attrs[attr] = value
         else:
             attrs[attr] = value
     return attrs
 
 
-def _get_axis(cdf: object, var: str):
-    if cdf.has_variable(var):
-        if cdf.is_char(var):
-            if 'sig_digits' in cdf.variable_attributes(var):  # cluster CSA trick :/
-                return SupportDataVariable(name=var, values=np.asarray(cdf.values(var), dtype=float),
-                                           attributes=_get_attributes(cdf, var))
-        return SupportDataVariable(name=var, values=cdf.values(var), attributes=_get_attributes(cdf, var))
-    log.warning(f"{ISTP_NOT_COMPLIANT_W}: trying to load {var} as support data but it is absent from the file")
+def _get_axis(cdf: object, axis_var: str, data_var: str):
+    if cdf.has_variable(axis_var):
+        if cdf.is_char(axis_var):
+            if 'sig_digits' in cdf.variable_attributes(axis_var):  # cluster CSA trick :/
+                return SupportDataVariable(name=axis_var, values=np.asarray(cdf.values(axis_var), dtype=float),
+                                           attributes=_get_attributes(cdf, axis_var))
+        return SupportDataVariable(name=axis_var, values=cdf.values(axis_var),
+                                   attributes=_get_attributes(cdf, axis_var))
+    else:
+        log.warning(
+            f"{ISTP_NOT_COMPLIANT_W}: trying to load {axis_var} as support data for {data_var} but it is absent from the file")
     return None
 
 
 def _get_axes(cdf: object, var: str, data_shape):
     attrs = sorted(filter(lambda attr: DEPEND_REGEX.match(attr), cdf.variable_attributes(var)))
     unix_time_name = cdf.variable_attribute_value(var, "DEPEND_TIME")
-    axes = list(map(lambda attr: _get_axis(cdf, cdf.variable_attribute_value(var, attr)), attrs))
+    axes = list(map(lambda attr: _get_axis(cdf, cdf.variable_attribute_value(var, attr), var), attrs))
     if unix_time_name is not None and unix_time_name in cdf.variables():
-        unix_time = _get_axis(cdf, unix_time_name)
-        if len(unix_time) == data_shape[0]:
+        unix_time = _get_axis(cdf, unix_time_name, var)
+        if len(unix_time) == data_shape[0] and len(axes[0].values) != data_shape[0]:
             unix_time.values = (unix_time.values * 1e9).astype('<M8[ns]')
             axes[0] = unix_time
             log.warning(
-                f"{ISTP_NOT_COMPLIANT_W}: swapping DEPEND_0 with DEPEND_TIME, if you think this is a bug report it here: https://github.com/SciQLop/PyISTP/issues")
+                f"{ISTP_NOT_COMPLIANT_W}: swapping DEPEND_0 with DEPEND_TIME for {var}, if you think this is a bug report it here: https://github.com/SciQLop/PyISTP/issues")
     return axes
 
 
@@ -82,6 +85,8 @@ class ISTPLoaderImpl:
     cdf = None
 
     def __init__(self, file=None, buffer=None):
+        if file is not None:
+            log.debug(f"Loading {file}")
         self.cdf = current_driver(file or buffer)
         self.data_variables = []
         self._update_data_vars_lis()
