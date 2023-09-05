@@ -15,7 +15,7 @@ maintainers = [
   {name = "Alexis Jeandet", email = "alexis.jeandet@member.fsf.org" }
 ]
 
-requires-python=">=3.7"
+requires-python=">=3.8"
 license = {file="COPYING"}
 readme = "README.rst"
 classifiers = [
@@ -24,11 +24,11 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
-dependencies = ['pycdfpp']
+dependencies = ['pycdfpp<=0.4.6']
 [project.urls]
 homepage = "https://github.com/SciQLop/PyISTP"
