@@ -32,3 +32,5 @@ classifiers = [
 dependencies = ['pycdfpp<=0.4.6']
 [project.urls]
 homepage = "https://github.com/SciQLop/PyISTP"
+repository = "https://github.com/SciQLop/PyISTP"
+documentation = "https://pyistp.readthedocs.io/en/latest/"
