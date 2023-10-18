@@ -1,4 +1,4 @@
-pycdfpp
+pycdfpp>=0.6.0
 pip
 bump2version
 wheel

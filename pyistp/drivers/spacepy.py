@@ -44,7 +44,7 @@ class Driver:
             return self.cdf[var].attrs[attr]
         return None
 
-    def values(self, var):
+    def values(self, var, is_metadata_variable=False):
         v = self.cdf[var]
         if v.type() in (pycdf.const.CDF_EPOCH, pycdf.const.CDF_EPOCH16, pycdf.const.CDF_TIME_TT2000):
             return np.vectorize(np.datetime64)(v[:])

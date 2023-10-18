@@ -19,7 +19,7 @@ def _get_attributes(cdf: object, var: str):
         value = cdf.variable_attribute_value(var, attr)
         if attr.endswith("_PTR") or attr[:-1].endswith("_PTR_"):
             if cdf.has_variable(value):
-                value = cdf.values(value)
+                value = cdf.values(value, is_metadata_variable=True)
                 if hasattr(value, 'tolist'):
                     attrs[attr] = value.tolist()
                 else:

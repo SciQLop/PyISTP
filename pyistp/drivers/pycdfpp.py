@@ -1,4 +1,15 @@
 import pycdfpp
+import numpy as np
+
+
+def _drop_first_dim_if_nrv(is_nrv: bool, values):
+    if is_nrv:
+        if values.shape[0] == 1:
+            return values[0]
+        else:
+            return np.array([], dtype=values.dtype)
+    else:
+        return values
 
 
 class Driver:
@@ -24,7 +35,7 @@ class Driver:
         return name in self.cdf
 
     def is_char(self, var):
-        return self.cdf[var].type == pycdfpp.CDF_CHAR
+        return self.cdf[var].type == pycdfpp.DataType.CDF_CHAR
 
     def variable_attributes(self, var):
         if self.cdf:
@@ -36,8 +47,10 @@ class Driver:
             return self.cdf[var].attributes[attr][0]
         return None
 
-    def values(self, var):
-        v = self.cdf[var]
-        if v.type in (pycdfpp.CDF_EPOCH, pycdfpp.CDF_EPOCH16, pycdfpp.CDF_TIME_TT2000):
-            return pycdfpp.to_datetime64(v)
-        return v.values
+    def values(self, var, is_metadata_variable=False):
+        v: pycdfpp.Variable = self.cdf[var]
+        if v.type in (pycdfpp.DataType.CDF_EPOCH, pycdfpp.DataType.CDF_EPOCH16, pycdfpp.DataType.CDF_TIME_TT2000):
+            return _drop_first_dim_if_nrv(v.is_nrv, pycdfpp.to_datetime64(v))
+        if is_metadata_variable and self.is_char(var):
+            return _drop_first_dim_if_nrv(v.is_nrv, v.values_encoded)
+        return _drop_first_dim_if_nrv(v.is_nrv, v.values)

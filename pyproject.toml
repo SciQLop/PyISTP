@@ -28,8 +28,9 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
-dependencies = ['pycdfpp<=0.4.6']
+dependencies = ['pycdfpp>=0.6.0']
 [project.urls]
 homepage = "https://github.com/SciQLop/PyISTP"
 repository = "https://github.com/SciQLop/PyISTP"
