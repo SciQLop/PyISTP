@@ -7,5 +7,5 @@ __version__ = '0.4.0'
 from .loader import ISTPLoader as _ISTPLoader
 
 
-def load(file=None, buffer=None) -> _ISTPLoader:
-    return _ISTPLoader(file=file, buffer=buffer)
+def load(file=None, buffer=None, master_file=None, master_buffer=None) -> _ISTPLoader:
+    return _ISTPLoader(file=file, buffer=buffer, master_file=master_file, master_buffer=master_buffer)

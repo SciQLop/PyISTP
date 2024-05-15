@@ -54,3 +54,6 @@ class Driver:
         if is_metadata_variable and self.is_char(var):
             return _drop_first_dim_if_nrv(v.is_nrv, v.values_encoded)
         return _drop_first_dim_if_nrv(v.is_nrv, v.values)
+
+    def shape(self, var):
+        return self.cdf[var].shape

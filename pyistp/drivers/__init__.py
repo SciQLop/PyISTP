@@ -1,10 +1,12 @@
 import logging, os
 import importlib
+from typing import Callable, ByteString
+from ._driver import Driver
 
 log = logging.getLogger(__name__)
 
 
-def _load_cdf_lib():
+def _load_cdf_lib() -> Callable[[str or ByteString], Driver]:
     available_libs = ["pycdfpp", "spacepy"]
     try_first_lib = os.environ.get("PYISTP_CDFLIB", "pycdfpp")
     available_libs.remove(try_first_lib)

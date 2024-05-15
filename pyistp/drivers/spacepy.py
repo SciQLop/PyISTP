@@ -36,7 +36,7 @@ class Driver:
             return self.cdf[var].attrs.keys()
         return []
 
-    def is_char(self,var):
+    def is_char(self, var):
         return self.cdf[var].type() == pycdf.const.CDF_CHAR
 
     def variable_attribute_value(self, var, attr):
@@ -49,3 +49,6 @@ class Driver:
         if v.type() in (pycdf.const.CDF_EPOCH, pycdf.const.CDF_EPOCH16, pycdf.const.CDF_TIME_TT2000):
             return np.vectorize(np.datetime64)(v[:])
         return v[:]
+
+    def shape(self, var):
+        return self.cdf[var].shape

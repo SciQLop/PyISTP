@@ -104,3 +104,9 @@ class TestPyIstp(unittest.TestCase):
         istp_file = pyistp.load(file=f"{current_path}/resources/tha_l2s_fgm_CDA_NO_RECORDS.cdf")
         self.assertIsNotNone(istp_file)
         self.assertIsNone(istp_file.data_variable('tha_fge_dsl'))
+
+    def test_non_compliant_cdf_with_master(self):
+        istp_file = pyistp.load(file=f"{current_path}/resources/wi_plsp_3dp_19990329_v02.cdf",
+                                master_file=f"{current_path}/resources/wi_plsp_3dp_00000000_v01.cdf")
+        self.assertIsNotNone(istp_file)
+        self.assertIsNotNone(istp_file.data_variable('MOM.P.AVGTEMP'))
