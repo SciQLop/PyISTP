@@ -50,5 +50,8 @@ class Driver:
             return np.vectorize(np.datetime64)(v[:])
         return v[:]
 
+    def is_nrv(self, var):
+        return not self.cdf[var].rv()
+
     def shape(self, var):
         return self.cdf[var].shape

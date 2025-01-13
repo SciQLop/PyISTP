@@ -55,5 +55,8 @@ class Driver:
             return _drop_first_dim_if_nrv(v.is_nrv, v.values_encoded)
         return _drop_first_dim_if_nrv(v.is_nrv, v.values)
 
+    def is_nrv(self, var):
+        return self.cdf[var].is_nrv
+
     def shape(self, var):
         return self.cdf[var].shape

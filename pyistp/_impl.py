@@ -38,9 +38,13 @@ def _get_axis(master_cdf: Driver, cdf: Driver, axis_var: str, data_var: str):
         if cdf.is_char(axis_var):
             if 'sig_digits' in master_cdf.variable_attributes(axis_var):  # cluster CSA trick :/
                 return SupportDataVariable(name=axis_var, values=np.asarray(cdf.values(axis_var), dtype=float),
-                                           attributes=_get_attributes(master_cdf, cdf, axis_var))
+                                           attributes=_get_attributes(master_cdf, cdf, axis_var),
+                                           is_nrv=cdf.is_nrv(axis_var)
+                                           )
         return SupportDataVariable(name=axis_var, values=cdf.values(axis_var),
-                                   attributes=_get_attributes(master_cdf, cdf, axis_var))
+                                   attributes=_get_attributes(master_cdf, cdf, axis_var),
+                                   is_nrv=cdf.is_nrv(axis_var)
+                                   )
     else:
         log.warning(
             f"{ISTP_NOT_COMPLIANT_W}: trying to load {axis_var} as support data for {data_var} but it is absent from the file")

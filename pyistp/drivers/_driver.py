@@ -35,3 +35,6 @@ class Driver(Protocol):
 
     def is_char(self, var: str) -> bool:
         ...
+
+    def is_nrv(self, var: str) -> bool:
+        ...
