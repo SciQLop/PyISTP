@@ -2,7 +2,7 @@
 
 __author__ = """Alexis Jeandet"""
 __email__ = 'alexis.jeandet@member.fsf.org'
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 
 from .loader import ISTPLoader as _ISTPLoader
 
