@@ -2,14 +2,15 @@ from typing import Collection, Callable, Any, Union
 
 
 class DataVariable:
-    __slots__ = ("name", "_values", 'attributes', 'axes', 'labels')
+    __slots__ = ("name", "_values", 'attributes', 'axes', 'labels', 'cdf_type')
 
-    def __init__(self, name: str, values: Union[Collection[Any], Callable], attributes, axes, labels=None):
+    def __init__(self, name: str, values: Union[Collection[Any], Callable], attributes, axes, cdf_type, labels=None):
         self.name = name
         self._values = values
         self.attributes = attributes
         self.axes = axes or []
         self.labels = labels
+        self.cdf_type = cdf_type
 
     @property
     def values(self):

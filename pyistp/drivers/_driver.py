@@ -15,6 +15,9 @@ class Driver(Protocol):
     def data_variable(self, var_name: AnyStr):
         ...
 
+    def cdf_type(self, var_name: AnyStr) -> AnyStr:
+        ...
+
     def variable_attribute_value(self, var: AnyStr, attr: AnyStr) -> Any:
         ...
 

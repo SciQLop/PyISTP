@@ -28,6 +28,9 @@ class Driver:
             return self.cdf.keys()
         return []
 
+    def cdf_type(self, var_name):
+        return pycdf.lib.cdftypenames[self.cdf[var_name].type()]
+
     def has_variable(self, name):
         return name in self.cdf
 

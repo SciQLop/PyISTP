@@ -31,6 +31,9 @@ class Driver:
             return list(self.cdf)
         return []
 
+    def cdf_type(self, var_name):
+        return self.cdf[var_name].type.name
+
     def has_variable(self, name):
         return name in self.cdf
 

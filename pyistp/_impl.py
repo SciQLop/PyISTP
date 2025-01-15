@@ -39,11 +39,13 @@ def _get_axis(master_cdf: Driver, cdf: Driver, axis_var: str, data_var: str):
             if 'sig_digits' in master_cdf.variable_attributes(axis_var):  # cluster CSA trick :/
                 return SupportDataVariable(name=axis_var, values=np.asarray(cdf.values(axis_var), dtype=float),
                                            attributes=_get_attributes(master_cdf, cdf, axis_var),
-                                           is_nrv=cdf.is_nrv(axis_var)
+                                           is_nrv=cdf.is_nrv(axis_var),
+                                           cdf_type=cdf.cdf_type(axis_var)
                                            )
         return SupportDataVariable(name=axis_var, values=cdf.values(axis_var),
                                    attributes=_get_attributes(master_cdf, cdf, axis_var),
-                                   is_nrv=cdf.is_nrv(axis_var)
+                                   is_nrv=cdf.is_nrv(axis_var),
+                                   cdf_type=cdf.cdf_type(axis_var)
                                    )
     else:
         log.warning(
@@ -78,13 +80,14 @@ def _load_data_var(master_cdf: Driver, cdf: Driver, var: str) -> DataVariable or
     shape = cdf.shape(var)
     axes = _get_axes(master_cdf, cdf, var, shape)
     attributes = _get_attributes(master_cdf, cdf, var)
+    cdf_type = cdf.cdf_type(var)
     labels = _get_labels(attributes)
     if len(axes) == 0:
         log.warning(f"{ISTP_NOT_COMPLIANT_W}: {var} was marked as data variable but it has 0 support variable")
         return None
     if None in axes or axes[0].values.shape[0] != shape[0]:
         return None
-    return DataVariable(name=var, values=values, attributes=attributes, axes=axes, labels=labels)
+    return DataVariable(name=var, values=values, attributes=attributes, axes=axes, cdf_type=cdf_type, labels=labels)
 
 
 class ISTPLoaderImpl:

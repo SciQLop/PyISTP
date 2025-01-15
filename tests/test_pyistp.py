@@ -111,6 +111,14 @@ class TestPyIstp(unittest.TestCase):
         self.assertIsNotNone(istp_file)
         self.assertIsNotNone(istp_file.data_variable('MOM.P.AVGTEMP'))
 
+    def test_get_data_variable_type(self):
+        istp_file = pyistp.load(file=f"{current_path}/resources/solo_l3_rpw-bia-density-10-seconds_00000000_v01.cdf")
+        self.assertEqual(istp_file.data_variable('DENSITY').cdf_type, 'CDF_FLOAT')
+
+    def test_get_support_variable_type(self):
+        istp_file = pyistp.load(file=f"{current_path}/resources/solo_l3_rpw-bia-density-10-seconds_00000000_v01.cdf")
+        self.assertEqual(istp_file.data_variable('DENSITY').axes[0].cdf_type, 'CDF_TIME_TT2000')  
+
     def test_is_nrv(self):
         istp_file = pyistp.load(file=f"{current_path}/resources/solo_l3_rpw-bia-density-10-seconds_00000000_v01.cdf")
         self.assertFalse(istp_file.data_variable('DENSITY').axes[0].is_nrv)
