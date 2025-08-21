@@ -117,8 +117,15 @@ class TestPyIstp(unittest.TestCase):
 
     def test_get_support_variable_type(self):
         istp_file = pyistp.load(file=f"{current_path}/resources/solo_l3_rpw-bia-density-10-seconds_00000000_v01.cdf")
-        self.assertEqual(istp_file.data_variable('DENSITY').axes[0].cdf_type, 'CDF_TIME_TT2000')  
+        self.assertEqual(istp_file.data_variable('DENSITY').axes[0].cdf_type, 'CDF_TIME_TT2000')
 
     def test_is_nrv(self):
         istp_file = pyistp.load(file=f"{current_path}/resources/solo_l3_rpw-bia-density-10-seconds_00000000_v01.cdf")
         self.assertFalse(istp_file.data_variable('DENSITY').axes[0].is_nrv)
+
+    def test_get_axis_values_from_master_as_fallback(self):
+        # https://github.com/SciQLop/speasy/issues/223
+        istp_file = pyistp.load(file=f"{current_path}/resources/sta_l1_het_20240103_v01.cdf",
+                                master_file=f"{current_path}/resources/sta_l1_het_00000000_v01.cdf")
+        self.assertIsNotNone(istp_file)
+        self.assertIsNotNone(istp_file.data_variable('Proton_Flux'))

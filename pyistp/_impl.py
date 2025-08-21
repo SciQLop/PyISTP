@@ -34,18 +34,19 @@ def _get_attributes(master_cdf: Driver, cdf: Driver, var: str):
 
 
 def _get_axis(master_cdf: Driver, cdf: Driver, axis_var: str, data_var: str):
-    if cdf.has_variable(axis_var):
-        if cdf.is_char(axis_var):
+    src_cdf = cdf if cdf.has_variable(axis_var) else master_cdf if master_cdf.has_variable(axis_var) else None
+    if src_cdf is not None:
+        if src_cdf.is_char(axis_var):
             if 'sig_digits' in master_cdf.variable_attributes(axis_var):  # cluster CSA trick :/
-                return SupportDataVariable(name=axis_var, values=np.asarray(cdf.values(axis_var), dtype=float),
-                                           attributes=_get_attributes(master_cdf, cdf, axis_var),
-                                           is_nrv=cdf.is_nrv(axis_var),
-                                           cdf_type=cdf.cdf_type(axis_var)
+                return SupportDataVariable(name=axis_var, values=np.asarray(src_cdf.values(axis_var), dtype=float),
+                                           attributes=_get_attributes(master_cdf, src_cdf, axis_var),
+                                           is_nrv=src_cdf.is_nrv(axis_var),
+                                           cdf_type=src_cdf.cdf_type(axis_var)
                                            )
-        return SupportDataVariable(name=axis_var, values=cdf.values(axis_var),
-                                   attributes=_get_attributes(master_cdf, cdf, axis_var),
-                                   is_nrv=cdf.is_nrv(axis_var),
-                                   cdf_type=cdf.cdf_type(axis_var)
+        return SupportDataVariable(name=axis_var, values=src_cdf.values(axis_var),
+                                   attributes=_get_attributes(master_cdf, src_cdf, axis_var),
+                                   is_nrv=src_cdf.is_nrv(axis_var),
+                                   cdf_type=src_cdf.cdf_type(axis_var)
                                    )
     else:
         log.warning(
