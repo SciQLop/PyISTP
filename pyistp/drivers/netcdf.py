@@ -66,16 +66,33 @@ class Driver:
         'S':  'CDF_CHAR',
     }
 
+    # Milliseconds between CDF epoch (year 0000) and Unix epoch (1970-01-01)
+    _CDF_EPOCH_OFFSET_MS = 62_167_219_200_000
+
+    def _get_units(self, var):
+        """Return the units attribute of a variable, checking both 'units' and 'UNITS'."""
+        v = self._ds[var]
+        for key in ('units', 'UNITS'):
+            try:
+                return v.getncattr(key)
+            except AttributeError:
+                pass
+        return None
+
     def _is_cf_time(self, var):
         """Return True if the variable uses CF time conventions (float + units with 'since')."""
-        try:
-            units = self._ds[var].getncattr('units')
-            return isinstance(units, str) and 'since' in units
-        except AttributeError:
-            return False
+        units = self._get_units(var)
+        return isinstance(units, str) and 'since' in units
+
+    def _is_cdf_epoch(self, var):
+        """Return True if the variable uses CDF_EPOCH convention (float64, units='ms')."""
+        units = self._get_units(var)
+        return (isinstance(units, str)
+                and units.strip().lower() == 'ms'
+                and self._ds[var].dtype == np.float64)
 
     def _cf_time_to_datetime64(self, var):
-        """Convert a CF time variable to datetime64[ns]."""
+        """Convert a CF time variable (units with 'since') to datetime64[ns]."""
         v = self._ds[var]
         units = v.getncattr('units')
         # netCDF4.num2date converts CF floats to cftime objects
@@ -83,10 +100,18 @@ class Driver:
         # Convert to datetime64[ns] via ISO string representation
         return np.array([np.datetime64(str(d), 'ns') for d in dates])
 
+    def _cdf_epoch_to_datetime64(self, var):
+        """Convert CDF_EPOCH (ms since year 0000) to datetime64[ns]."""
+        ms = np.array(self._ds[var][:], dtype=np.float64)
+        unix_ms = ms - self._CDF_EPOCH_OFFSET_MS
+        return (unix_ms * 1_000_000).astype('datetime64[ns]')
+
     def values(self, var, is_metadata_variable=False):
         v = self._ds[var]
         if self._is_cf_time(var):
             return self._cf_time_to_datetime64(var)
+        if self._is_cdf_epoch(var):
+            return self._cdf_epoch_to_datetime64(var)
         if v.dtype == str:
             # Native NetCDF4 string — return as numpy array of strings
             raw = v[()]
