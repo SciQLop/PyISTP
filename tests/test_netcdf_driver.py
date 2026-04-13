@@ -8,6 +8,7 @@ Same guarantees as test_understand_existing_drivers.py, adapted for NetCDF speci
   - Bytes input via netCDF4.Dataset(memory=...)
 """
 
+import os
 import numpy as np
 import pytest
 
@@ -259,6 +260,56 @@ def test_global_attribute_project_is_accessible(drv):
 def test_global_attribute_returns_none_for_missing(drv):
     """Missing global attribute → None, never raises."""
     assert drv.attribute("ATTRIBUTE_THAT_DOES_NOT_EXIST") is None
+
+
+# ---------------------------------------------------------------------------
+# Real CDAWeb file — ACE MFI (ac_h2s_mfi_cdaweb.nc)
+# Uses CDF_EPOCH convention: float64 milliseconds since year 0000, units="ms"
+# ---------------------------------------------------------------------------
+
+AC_MFI = os.path.join(os.path.dirname(__file__), "resources", "ac_h2s_mfi_cdaweb.nc")
+
+
+@pytest.fixture(scope="module")
+def drv_ac():
+    return Driver(AC_MFI)
+
+
+def test_real_variables_contains_epoch(drv_ac):
+    assert "Epoch" in drv_ac.variables()
+
+
+def test_real_variables_contains_data_var(drv_ac):
+    assert "Magnitude" in drv_ac.variables()
+
+
+def test_real_epoch_returns_datetime64_ns(drv_ac):
+    """CDF_EPOCH (ms since year 0) must be converted to datetime64[ns]."""
+    epoch = drv_ac.values("Epoch")
+    assert epoch.dtype == np.dtype("datetime64[ns]")
+
+
+def test_real_epoch_is_in_plausible_range(drv_ac):
+    """ACE MFI data should be between 1997 and 2030."""
+    epoch = drv_ac.values("Epoch")
+    assert epoch[0] > np.datetime64("1997-01-01", "ns")
+    assert epoch[0] < np.datetime64("2030-01-01", "ns")
+
+
+def test_real_magnitude_is_float_ndarray(drv_ac):
+    result = drv_ac.values("Magnitude")
+    assert isinstance(result, np.ndarray)
+    assert np.issubdtype(result.dtype, np.floating)
+
+
+def test_real_magnitude_not_empty(drv_ac):
+    assert len(drv_ac.values("Magnitude")) > 0
+
+
+def test_real_cdf_type_starts_with_cdf_prefix(drv_ac):
+    for var in drv_ac.variables():
+        t = drv_ac.cdf_type(var)
+        assert t.startswith("CDF_"), f"Variable {var!r}: unexpected type {t!r}"
 
 
 # ---------------------------------------------------------------------------
