@@ -1,9 +1,11 @@
 """
 Driver contract tests for the NetCDF driver.
 
-Same guarantees as test_understand_existing_drivers.py, adapted for NetCDF specifics:
+Same guarantees as test_understand_existing_drivers.py, adapted for
+NetCDF specifics:
   - is_nrv() always returns False (concept does not exist in NetCDF4)
-  - Epoch encoded as CF time (float + units attribute) → converted to datetime64[ns]
+  - Epoch encoded as CF time (float + units attribute) →
+    converted to datetime64[ns]
   - cdf_type() maps numpy dtypes to CDF_* type strings
   - Bytes input via netCDF4.Dataset(memory=...)
 """
@@ -123,12 +125,18 @@ def test_variable_attribute_value_returns_value_when_present(drv):
 
 def test_variable_attribute_value_returns_none_for_missing_attr(drv):
     """Missing attribute on existing variable → None, never raises."""
-    assert drv.variable_attribute_value("DENSITY", "ATTRIBUTE_THAT_DOES_NOT_EXIST") is None
+    result = drv.variable_attribute_value(
+        "DENSITY", "ATTRIBUTE_THAT_DOES_NOT_EXIST"
+    )
+    assert result is None
 
 
 def test_variable_attribute_value_returns_none_for_missing_var(drv):
     """Missing variable → None, never raises."""
-    assert drv.variable_attribute_value("VAR_THAT_DOES_NOT_EXIST", "VAR_TYPE") is None
+    result = drv.variable_attribute_value(
+        "VAR_THAT_DOES_NOT_EXIST", "VAR_TYPE"
+    )
+    assert result is None
 
 
 # ---------------------------------------------------------------------------
@@ -267,7 +275,9 @@ def test_global_attribute_returns_none_for_missing(drv):
 # Uses CDF_EPOCH convention: float64 milliseconds since year 0000, units="ms"
 # ---------------------------------------------------------------------------
 
-AC_MFI = os.path.join(os.path.dirname(__file__), "resources", "ac_h2s_mfi_cdaweb.nc")
+AC_MFI = os.path.join(
+    os.path.dirname(__file__), "resources", "ac_h2s_mfi_cdaweb.nc"
+)
 
 
 @pytest.fixture(scope="module")
@@ -322,4 +332,5 @@ def test_driver_accepts_bytes_input(nc_path):
         data = f.read()
     drv_from_bytes = Driver(data)
     assert "DENSITY" in drv_from_bytes.variables()
-    assert drv_from_bytes.variable_attribute_value("DENSITY", "VAR_TYPE") == "data"
+    val = drv_from_bytes.variable_attribute_value("DENSITY", "VAR_TYPE")
+    assert val == "data"

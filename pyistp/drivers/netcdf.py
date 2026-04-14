@@ -1,5 +1,6 @@
 import netCDF4
 import numpy as np
+from typing import Any
 
 
 class Driver:
@@ -70,7 +71,7 @@ class Driver:
     _CDF_EPOCH_OFFSET_MS = 62_167_219_200_000
 
     def _get_units(self, var):
-        """Return the units attribute of a variable, checking both 'units' and 'UNITS'."""
+        """Return the units attribute, checking 'units' and 'UNITS'."""
         v = self._ds[var]
         for key in ('units', 'UNITS'):
             try:
@@ -80,23 +81,28 @@ class Driver:
         return None
 
     def _is_cf_time(self, var):
-        """Return True if the variable uses CF time conventions (float + units with 'since')."""
+        """Return True if the variable uses CF time conventions
+        (float + units attribute containing 'since')."""
         units = self._get_units(var)
         return isinstance(units, str) and 'since' in units
 
     def _is_cdf_epoch(self, var):
-        """Return True if the variable uses CDF_EPOCH convention (float64, units='ms')."""
+        """Return True if the variable uses CDF_EPOCH convention
+        (float64, units='ms')."""
         units = self._get_units(var)
         return (isinstance(units, str)
                 and units.strip().lower() == 'ms'
                 and self._ds[var].dtype == np.float64)
 
     def _cf_time_to_datetime64(self, var):
-        """Convert a CF time variable (units with 'since') to datetime64[ns]."""
+        """Convert a CF time variable (units with 'since') to
+        datetime64[ns]."""
         v = self._ds[var]
         units = v.getncattr('units')
         # netCDF4.num2date converts CF floats to cftime objects
-        dates = netCDF4.num2date(v[:], units, only_use_cftime_datetimes=False)
+        dates: Any = netCDF4.num2date(
+            v[:], units, only_use_cftime_datetimes=False
+        )
         # Convert to datetime64[ns] via ISO string representation
         return np.array([np.datetime64(str(d), 'ns') for d in dates])
 
