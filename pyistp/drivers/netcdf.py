@@ -37,7 +37,7 @@ class Driver:
             return False
         return self._ds[var].dtype == str
 
-    def is_nrv(self, var):
+    def is_nrv(self, var):  # NOSONAR
         # NRV concept does not exist in NetCDF4
         return False
 
@@ -112,7 +112,7 @@ class Driver:
         unix_ms = ms - self._CDF_EPOCH_OFFSET_MS
         return (unix_ms * 1_000_000).astype('datetime64[ns]')
 
-    def values(self, var, is_metadata_variable=False):
+    def values(self, var, is_metadata_variable=False):  # NOSONAR
         v = self._ds[var]
         if self._is_cf_time(var):
             return self._cf_time_to_datetime64(var)
