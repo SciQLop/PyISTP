@@ -94,12 +94,14 @@ def _load_data_var(master_cdf: Driver, cdf: Driver, var: str) -> DataVariable or
 class ISTPLoaderImpl:
     cdf: Optional[Driver] = None
 
-    def __init__(self, file=None, buffer=None, master_file=None, master_buffer=None):
+    def __init__(self, file=None, buffer=None, master_file=None, master_buffer=None, driver_factory=None):
+        if driver_factory is None:
+            driver_factory = current_driver
         if file is not None:
             log.debug(f"Loading {file}")
-        self.cdf = current_driver(file or buffer)
+        self.cdf = driver_factory(file or buffer)
         if master_file or master_buffer:
-            self.master_cdf = current_driver(master_file or master_buffer)
+            self.master_cdf = driver_factory(master_file or master_buffer)
         else:
             self.master_cdf = self.cdf
         self.data_variables = []
