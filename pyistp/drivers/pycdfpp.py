@@ -53,7 +53,9 @@ class Driver:
     def values(self, var, is_metadata_variable=False):
         v: pycdfpp.Variable = self.cdf[var]
         if v.type in (pycdfpp.DataType.CDF_EPOCH, pycdfpp.DataType.CDF_EPOCH16, pycdfpp.DataType.CDF_TIME_TT2000):
-            return _drop_first_dim_if_nrv(v.is_nrv, pycdfpp.to_datetime64(v))
+            # CDF time variables are always one timestamp per record;
+            # flatten in case pycdfpp preserves a spurious trailing dimension (e.g. shape (N,1))
+            return _drop_first_dim_if_nrv(v.is_nrv, pycdfpp.to_datetime64(v).ravel())
         if is_metadata_variable and self.is_char(var):
             return _drop_first_dim_if_nrv(v.is_nrv, v.values_encoded)
         return _drop_first_dim_if_nrv(v.is_nrv, v.values)
