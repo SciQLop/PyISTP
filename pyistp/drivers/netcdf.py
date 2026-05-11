@@ -127,14 +127,11 @@ class Driver:
         return np.array(v[:])
 
     def cdf_type(self, var):
+        if self._is_cf_time(var):
+            return 'CDF_TIME_TT2000'
+        if self._is_cdf_epoch(var):
+            return 'CDF_EPOCH'
         v = self._ds[var]
-        # CF time variable: float with a "units" attribute containing "since"
-        try:
-            units = v.getncattr('units')
-            if isinstance(units, str) and 'since' in units:
-                return 'CDF_TIME_TT2000'
-        except AttributeError:
-            pass
         if v.dtype == str:
             return 'CDF_CHAR'
         dtype_str = v.dtype.str.lstrip('<>=!')
