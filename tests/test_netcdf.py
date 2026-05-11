@@ -247,6 +247,12 @@ class TestNetCDFDriver:
             t = drv_ac.cdf_type(var)
             assert t.startswith("CDF_"), f"Variable {var!r}: unexpected type {t!r}"
 
+    def test_real_epoch_cdf_type_is_cdf_epoch(self, drv_ac):
+        """Epoch in the CDAWeb file has UNITS='ms' (uppercase, no 'since').
+        cdf_type() must return 'CDF_EPOCH', consistent with values() which
+        returns datetime64[ns] via _is_cdf_epoch()."""
+        assert drv_ac.cdf_type("Epoch") == "CDF_EPOCH"
+
     # Bytes input
 
     def test_driver_accepts_bytes_input(self, nc_path):
