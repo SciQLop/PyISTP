@@ -4,10 +4,9 @@ from .data_variable import DataVariable
 
 class ISTPLoader:
 
-    def __init__(self, file=None, buffer=None, master_file=None, master_buffer=None, driver_factory=None):
+    def __init__(self, file=None, buffer=None, master_file=None, master_buffer=None):
         from ._impl import ISTPLoaderImpl
-        self._impl = ISTPLoaderImpl(file=file, buffer=buffer, master_file=master_file, master_buffer=master_buffer,
-                                    driver_factory=driver_factory)
+        self._impl = ISTPLoaderImpl(file=file, buffer=buffer, master_file=master_file, master_buffer=master_buffer)
 
     def attributes(self):
         return self._impl.attributes()

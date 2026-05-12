@@ -3,7 +3,7 @@ Tests for NetCDF support in PyISTP.
 
 Two test classes:
   - TestNetCDFDriver  : contract tests for pyistp.drivers.netcdf.Driver
-  - TestLoadNetCDF    : integration tests for pyistp.load_netcdf()
+  - TestLoadNetCDF    : integration tests for pyistp.load()
 """
 
 import os
@@ -265,36 +265,36 @@ class TestNetCDFDriver:
 
 
 # ---------------------------------------------------------------------------
-# TestLoadNetCDF — pyistp.load_netcdf() integration tests
+# TestLoadNetCDF — pyistp.load() integration tests
 # ---------------------------------------------------------------------------
 
 class TestLoadNetCDF:
 
     def test_returns_loader(self, nc_path):
-        assert pyistp.load_netcdf(file=str(nc_path)) is not None
+        assert pyistp.load(file=str(nc_path)) is not None
 
     def test_finds_data_variables(self, nc_path):
-        loader = pyistp.load_netcdf(file=str(nc_path))
+        loader = pyistp.load(file=str(nc_path))
         assert "DENSITY" in loader.data_variables()
 
     def test_loads_variable(self, nc_path):
-        loader = pyistp.load_netcdf(file=str(nc_path))
+        loader = pyistp.load(file=str(nc_path))
         assert loader.data_variable("DENSITY") is not None
 
     def test_variable_has_time_axis(self, nc_path):
-        loader = pyistp.load_netcdf(file=str(nc_path))
+        loader = pyistp.load(file=str(nc_path))
         var = loader.data_variable("DENSITY")
         assert len(var.axes) >= 1
         assert var.axes[0].values.dtype == np.dtype("datetime64[ns]")
 
     def test_variable_values_shape_matches_time(self, nc_path):
-        loader = pyistp.load_netcdf(file=str(nc_path))
+        loader = pyistp.load(file=str(nc_path))
         var = loader.data_variable("DENSITY")
         assert var.values.shape[0] == var.axes[0].values.shape[0]
 
     def test_real_file_returns_loader(self):
-        assert pyistp.load_netcdf(file=AC_MFI) is not None
+        assert pyistp.load(file=AC_MFI) is not None
 
     def test_real_file_has_data_variables(self):
-        loader = pyistp.load_netcdf(file=AC_MFI)
+        loader = pyistp.load(file=AC_MFI)
         assert len(loader.data_variables()) > 0
