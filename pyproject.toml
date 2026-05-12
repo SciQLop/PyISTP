@@ -30,10 +30,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = ['pycdfpp>=0.6.0']
-
-[project.optional-dependencies]
-netcdf = ['netCDF4']
+dependencies = ['pycdfpp>=0.6.0', 'netCDF4']
 [project.urls]
 homepage = "https://github.com/SciQLop/PyISTP"
 repository = "https://github.com/SciQLop/PyISTP"
