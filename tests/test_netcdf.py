@@ -11,15 +11,8 @@ import numpy as np
 import pytest
 import pyistp
 
-try:
-    import netCDF4
-except ImportError:
-    pytest.skip("netCDF4 not installed", allow_module_level=True)
-
-try:
-    from pyistp.drivers.netcdf import Driver
-except ImportError:
-    pytest.skip("netcdf driver not implemented yet", allow_module_level=True)
+import netCDF4
+from pyistp.drivers.netcdf import Driver
 
 
 AC_MFI = os.path.join(
