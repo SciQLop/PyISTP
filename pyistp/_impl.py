@@ -1,4 +1,16 @@
 from .drivers import current_driver, Driver
+
+
+def _driver_factory(file_or_buffer):
+    if isinstance(file_or_buffer, bytes):
+        magic = file_or_buffer[:4]
+    else:
+        with open(file_or_buffer, "rb") as f:
+            magic = f.read(4)
+    if magic == b'\x89HDF':
+        from .drivers.netcdf import Driver as NetCDFDriver
+        return NetCDFDriver(file_or_buffer)
+    return current_driver(file_or_buffer)
 from .data_variable import DataVariable
 from .support_data_variable import SupportDataVariable
 import re
@@ -94,14 +106,12 @@ def _load_data_var(master_cdf: Driver, cdf: Driver, var: str) -> DataVariable or
 class ISTPLoaderImpl:
     cdf: Optional[Driver] = None
 
-    def __init__(self, file=None, buffer=None, master_file=None, master_buffer=None, driver_factory=None):
-        if driver_factory is None:
-            driver_factory = current_driver
+    def __init__(self, file=None, buffer=None, master_file=None, master_buffer=None):
         if file is not None:
             log.debug(f"Loading {file}")
-        self.cdf = driver_factory(file or buffer)
+        self.cdf = _driver_factory(file or buffer)
         if master_file or master_buffer:
-            self.master_cdf = driver_factory(master_file or master_buffer)
+            self.master_cdf = _driver_factory(master_file or master_buffer)
         else:
             self.master_cdf = self.cdf
         self.data_variables = []

@@ -9,8 +9,3 @@ from .loader import ISTPLoader as _ISTPLoader
 
 def load(file=None, buffer=None, master_file=None, master_buffer=None) -> _ISTPLoader:
     return _ISTPLoader(file=file, buffer=buffer, master_file=master_file, master_buffer=master_buffer)
-
-
-def load_netcdf(file=None, buffer=None) -> _ISTPLoader:
-    from .drivers.netcdf import Driver
-    return _ISTPLoader(file=file, buffer=buffer, driver_factory=Driver)
