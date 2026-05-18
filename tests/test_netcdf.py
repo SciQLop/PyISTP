@@ -7,13 +7,13 @@ Two test classes:
 """
 
 import os
-import numpy as np
-import pytest
-import pyistp
 
 import netCDF4
-from pyistp.drivers.netcdf import Driver
+import numpy as np
+import pytest
 
+import pyistp
+from pyistp.drivers.netcdf import Driver
 
 AC_MFI = os.path.join(
     os.path.dirname(__file__), "resources", "ac_h2s_mfi_cdaweb.nc"
@@ -23,6 +23,7 @@ AC_MFI = os.path.join(
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def nc_path(tmp_path):
@@ -70,8 +71,8 @@ def drv_ac():
 # TestNetCDFDriver — driver contract tests
 # ---------------------------------------------------------------------------
 
-class TestNetCDFDriver:
 
+class TestNetCDFDriver:
     # variables()
 
     def test_variables_returns_list(self, drv):
@@ -109,11 +110,19 @@ class TestNetCDFDriver:
 
     def test_variable_attribute_value_returns_none_for_missing_attr(self, drv):
         """Missing attribute on existing variable → None, never raises."""
-        assert drv.variable_attribute_value("DENSITY", "ATTRIBUTE_THAT_DOES_NOT_EXIST") is None
+        assert (
+            drv.variable_attribute_value(
+                "DENSITY", "ATTRIBUTE_THAT_DOES_NOT_EXIST"
+            )
+            is None
+        )
 
     def test_variable_attribute_value_returns_none_for_missing_var(self, drv):
         """Missing variable → None, never raises."""
-        assert drv.variable_attribute_value("VAR_THAT_DOES_NOT_EXIST", "VAR_TYPE") is None
+        assert (
+            drv.variable_attribute_value("VAR_THAT_DOES_NOT_EXIST", "VAR_TYPE")
+            is None
+        )
 
     # values()
 
@@ -125,7 +134,9 @@ class TestNetCDFDriver:
 
     def test_values_epoch_first_value_is_correct(self, drv):
         """t=0s since 1970-01-01 → 1970-01-01T00:00:00."""
-        assert drv.values("Epoch")[0] == np.datetime64("1970-01-01T00:00:00", "ns")
+        assert drv.values("Epoch")[0] == np.datetime64(
+            "1970-01-01T00:00:00", "ns"
+        )
 
     def test_values_float_returns_ndarray(self, drv):
         result = drv.values("DENSITY")
@@ -183,7 +194,9 @@ class TestNetCDFDriver:
     def test_cdf_type_starts_with_cdf_prefix(self, drv):
         for var in drv.variables():
             t = drv.cdf_type(var)
-            assert t.startswith("CDF_"), f"Variable {var!r}: unexpected type {t!r}"
+            assert t.startswith("CDF_"), (
+                f"Variable {var!r}: unexpected type {t!r}"
+            )
 
     def test_cdf_type_density_is_float(self, drv):
         assert drv.cdf_type("DENSITY") == "CDF_FLOAT"
@@ -238,7 +251,9 @@ class TestNetCDFDriver:
     def test_real_cdf_type_starts_with_cdf_prefix(self, drv_ac):
         for var in drv_ac.variables():
             t = drv_ac.cdf_type(var)
-            assert t.startswith("CDF_"), f"Variable {var!r}: unexpected type {t!r}"
+            assert t.startswith("CDF_"), (
+                f"Variable {var!r}: unexpected type {t!r}"
+            )
 
     def test_real_epoch_cdf_type_is_cdf_epoch(self, drv_ac):
         """Epoch in the CDAWeb file has UNITS='ms' (uppercase, no 'since').
@@ -254,15 +269,18 @@ class TestNetCDFDriver:
             raw = f.read()
         drv_from_bytes = Driver(raw)
         assert "DENSITY" in drv_from_bytes.variables()
-        assert drv_from_bytes.variable_attribute_value("DENSITY", "VAR_TYPE") == "data"
+        assert (
+            drv_from_bytes.variable_attribute_value("DENSITY", "VAR_TYPE")
+            == "data"
+        )
 
 
 # ---------------------------------------------------------------------------
 # TestLoadNetCDF — pyistp.load() integration tests
 # ---------------------------------------------------------------------------
 
-class TestLoadNetCDF:
 
+class TestLoadNetCDF:
     def test_returns_loader(self, nc_path):
         assert pyistp.load(file=str(nc_path)) is not None
 
