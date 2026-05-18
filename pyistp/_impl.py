@@ -128,7 +128,9 @@ class ISTPLoaderImpl:
             self.data_variables = []
             for var in self.master_cdf.variables():
                 var_attrs = self.master_cdf.variable_attributes(var)
-                var_type = self.master_cdf.variable_attribute_value(var, 'VAR_TYPE')
+                # search for the VAR_TYPE attribute, regardless of its case
+                var_type_attr = next((a for a in var_attrs if a.upper() == 'VAR_TYPE'), None)
+                var_type = self.master_cdf.variable_attribute_value(var, var_type_attr) if var_type_attr else None
                 param_type = (self.master_cdf.variable_attribute_value(var,
                                                                        'PARAMETER_TYPE') or "").lower()  # another cluster CSA crap
                 if (var_type == 'data' or param_type == 'data') and not self.master_cdf.is_char(var):

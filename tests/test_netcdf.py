@@ -19,6 +19,10 @@ AC_MFI = os.path.join(
     os.path.dirname(__file__), "resources", "ac_h2s_mfi_cdaweb.nc"
 )
 
+ICON_NC = os.path.join(
+    os.path.dirname(__file__), "resources", "icon_l2-6_euv_20220307_v03r004.nc"
+)
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -308,4 +312,9 @@ class TestLoadNetCDF:
 
     def test_real_file_has_data_variables(self):
         loader = pyistp.load(file=AC_MFI)
+        assert len(loader.data_variables()) > 0
+
+    def test_nc_with_Var_Type(self):
+        """ICON File uses Var_Type instead of VAR_TYPE."""
+        loader = pyistp.load(file=ICON_NC)
         assert len(loader.data_variables()) > 0
