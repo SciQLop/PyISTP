@@ -22,6 +22,9 @@ AC_MFI = os.path.join(
 ICON_NC = os.path.join(
     os.path.dirname(__file__), "resources", "icon_l2-6_euv_20220307_v03r004.nc"
 )
+ICON_MASTER = os.path.join(
+    os.path.dirname(__file__), "resources", "icon_l2-6_euv_00000000_v01.cdf"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -69,6 +72,11 @@ def drv(nc_path):
 @pytest.fixture(scope="module")
 def drv_ac():
     return Driver(AC_MFI)
+
+
+@pytest.fixture(scope="module")
+def drv_icon():
+    return Driver(ICON_NC)
 
 
 # ---------------------------------------------------------------------------
@@ -265,6 +273,13 @@ class TestNetCDFDriver:
         returns datetime64[ns] via _is_cdf_epoch()."""
         assert drv_ac.cdf_type("Epoch") == "CDF_EPOCH"
 
+    def test_icon_epoch_returns_datetime64_ns(self, drv_icon):
+        """ICON Epoch uses Units='milliseconds' (mixed case, ms since 1970)."""
+        assert drv_icon.values("Epoch").dtype == np.dtype("datetime64[ns]")
+
+    def test_icon_epoch_cdf_type_is_time(self, drv_icon):
+        assert drv_icon.cdf_type("Epoch") == "CDF_TIME_TT2000"
+
     # Bytes input
 
     def test_driver_accepts_bytes_input(self, nc_path):
@@ -318,3 +333,10 @@ class TestLoadNetCDF:
         """ICON File uses Var_Type instead of VAR_TYPE."""
         loader = pyistp.load(file=ICON_NC)
         assert len(loader.data_variables()) > 0
+
+    def test_nc_with_Depend_0(self):
+        """ICON File uses Depend_0 instead of DEPEND_0."""
+        loader = pyistp.load(file=ICON_NC)
+        var = loader.data_variable(loader.data_variables()[0])
+        assert var is not None
+        assert var.axes[0].values.dtype == np.dtype("datetime64[ns]")
