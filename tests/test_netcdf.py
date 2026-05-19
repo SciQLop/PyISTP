@@ -339,4 +339,11 @@ class TestLoadNetCDF:
         loader = pyistp.load(file=ICON_NC)
         var = loader.data_variable(loader.data_variables()[0])
         assert var is not None
+
+    def test_nc_with_cdf_master(self):
+        loader = pyistp.load(file=ICON_NC, master_file=ICON_MASTER)
+        assert len(loader.data_variables()) > 0
+        var = loader.data_variable(loader.data_variables()[0])
+        assert var is not None
+        assert var.axes[0].values.dtype == np.dtype("datetime64[ns]")
         assert var.axes[0].values.dtype == np.dtype("datetime64[ns]")

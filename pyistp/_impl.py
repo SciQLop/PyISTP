@@ -45,7 +45,17 @@ def _get_attributes(master_cdf: Driver, cdf: Driver, var: str):
     return attrs
 
 
+def _resolve_epoch_virtual(cdf: Driver, axis_var: str) -> str:
+    # Some SPDF masters define DEPEND_0=Epoch_cdf, a VIRTUAL variable computed
+    # from Epoch. NetCDF data files only store Epoch directly, so we fall back
+    # to Epoch when Epoch_cdf is absent.
+    if axis_var == 'Epoch_cdf' and not cdf.has_variable('Epoch_cdf') and cdf.has_variable('Epoch'):
+        return 'Epoch'
+    return axis_var
+
+
 def _get_axis(master_cdf: Driver, cdf: Driver, axis_var: str, data_var: str):
+    axis_var = _resolve_epoch_virtual(cdf, axis_var)
     src_cdf = cdf if cdf.has_variable(axis_var) else master_cdf if master_cdf.has_variable(axis_var) else None
     if src_cdf is not None:
         if src_cdf.is_char(axis_var):
