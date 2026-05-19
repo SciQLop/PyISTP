@@ -71,13 +71,10 @@ class Driver:
     _CDF_EPOCH_OFFSET_MS = 62_167_219_200_000
 
     def _get_units(self, var):
-        """Return the units attribute, checking 'units' and 'UNITS'."""
         v = self._ds[var]
-        for key in ('units', 'UNITS'):
-            try:
+        for key in v.ncattrs():
+            if key.lower() == 'units':
                 return v.getncattr(key)
-            except AttributeError:
-                pass
         return None
 
     def _is_cf_time(self, var):
