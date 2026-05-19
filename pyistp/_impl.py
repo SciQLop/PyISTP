@@ -1,4 +1,16 @@
 from .drivers import current_driver, Driver
+
+
+def _driver_factory(file_or_buffer):
+    if isinstance(file_or_buffer, bytes):
+        magic = file_or_buffer[:4]
+    else:
+        with open(file_or_buffer, "rb") as f:
+            magic = f.read(4)
+    if magic == b'\x89HDF':
+        from .drivers.netcdf import Driver as NetCDFDriver
+        return NetCDFDriver(file_or_buffer)
+    return current_driver(file_or_buffer)
 from .data_variable import DataVariable
 from .support_data_variable import SupportDataVariable
 import re
@@ -6,7 +18,7 @@ import numpy as np
 from typing import List, Optional
 import logging
 
-DEPEND_REGEX = re.compile("DEPEND_\\d")
+DEPEND_REGEX = re.compile("DEPEND_\\d", re.IGNORECASE)
 
 ISTP_NOT_COMPLIANT_W = "Non compliant ISTP file"
 
@@ -33,7 +45,17 @@ def _get_attributes(master_cdf: Driver, cdf: Driver, var: str):
     return attrs
 
 
+def _resolve_epoch_virtual(cdf: Driver, axis_var: str) -> str:
+    # Some SPDF masters define DEPEND_0=Epoch_cdf, a VIRTUAL variable computed
+    # from Epoch. NetCDF data files only store Epoch directly, so we fall back
+    # to Epoch when Epoch_cdf is absent.
+    if axis_var == 'Epoch_cdf' and not cdf.has_variable('Epoch_cdf') and cdf.has_variable('Epoch'):
+        return 'Epoch'
+    return axis_var
+
+
 def _get_axis(master_cdf: Driver, cdf: Driver, axis_var: str, data_var: str):
+    axis_var = _resolve_epoch_virtual(cdf, axis_var)
     src_cdf = cdf if cdf.has_variable(axis_var) else master_cdf if master_cdf.has_variable(axis_var) else None
     if src_cdf is not None:
         if src_cdf.is_char(axis_var):
@@ -97,9 +119,9 @@ class ISTPLoaderImpl:
     def __init__(self, file=None, buffer=None, master_file=None, master_buffer=None):
         if file is not None:
             log.debug(f"Loading {file}")
-        self.cdf = current_driver(file or buffer)
+        self.cdf = _driver_factory(file or buffer)
         if master_file or master_buffer:
-            self.master_cdf = current_driver(master_file or master_buffer)
+            self.master_cdf = _driver_factory(master_file or master_buffer)
         else:
             self.master_cdf = self.cdf
         self.data_variables = []
@@ -116,7 +138,9 @@ class ISTPLoaderImpl:
             self.data_variables = []
             for var in self.master_cdf.variables():
                 var_attrs = self.master_cdf.variable_attributes(var)
-                var_type = self.master_cdf.variable_attribute_value(var, 'VAR_TYPE')
+                # search for the VAR_TYPE attribute, regardless of its case
+                var_type_attr = next((a for a in var_attrs if a.upper() == 'VAR_TYPE'), None)
+                var_type = self.master_cdf.variable_attribute_value(var, var_type_attr) if var_type_attr else None
                 param_type = (self.master_cdf.variable_attribute_value(var,
                                                                        'PARAMETER_TYPE') or "").lower()  # another cluster CSA crap
                 if (var_type == 'data' or param_type == 'data') and not self.master_cdf.is_char(var):

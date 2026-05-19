@@ -8,3 +8,5 @@ coverage
 Sphinx
 twine
 ddt
+netCDF4
+pytest-cov
