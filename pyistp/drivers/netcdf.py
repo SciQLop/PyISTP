@@ -79,7 +79,7 @@ class Driver:
 
     def _is_cf_time(self, var):
         """Return True if the variable uses CF time conventions
-        (float + units attribute containing 'since')."""
+        (units attribute containing 'since')."""
         units = self._get_units(var)
         return isinstance(units, str) and 'since' in units
 
@@ -109,12 +109,23 @@ class Driver:
         unix_ms = ms - self._CDF_EPOCH_OFFSET_MS
         return (unix_ms * 1_000_000).astype('datetime64[ns]')
 
+    def _is_unix_ms_time(self, var):
+        units = self._get_units(var)
+        return isinstance(units, str) and units.strip().lower() == 'milliseconds'
+
+    def _unix_ms_time_to_datetime64(self, var):
+        """Convert ms since Unix epoch (1970-01-01) to datetime64[ns]."""
+        ms = np.array(self._ds[var][:], dtype=np.int64)
+        return (ms * 1_000_000).astype('datetime64[ns]')
+
     def values(self, var, is_metadata_variable=False):  # NOSONAR
         v = self._ds[var]
         if self._is_cf_time(var):
             return self._cf_time_to_datetime64(var)
         if self._is_cdf_epoch(var):
             return self._cdf_epoch_to_datetime64(var)
+        if self._is_unix_ms_time(var):
+            return self._unix_ms_time_to_datetime64(var)
         if v.dtype == str:
             # Native NetCDF4 string — return as numpy array of strings
             raw = v[()]
@@ -124,7 +135,7 @@ class Driver:
         return np.array(v[:])
 
     def cdf_type(self, var):
-        if self._is_cf_time(var):
+        if self._is_cf_time(var) or self._is_unix_ms_time(var):
             return 'CDF_TIME_TT2000'
         if self._is_cdf_epoch(var):
             return 'CDF_EPOCH'
