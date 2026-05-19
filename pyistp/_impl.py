@@ -18,7 +18,7 @@ import numpy as np
 from typing import List, Optional
 import logging
 
-DEPEND_REGEX = re.compile("DEPEND_\\d")
+DEPEND_REGEX = re.compile("DEPEND_\\d", re.IGNORECASE)
 
 ISTP_NOT_COMPLIANT_W = "Non compliant ISTP file"
 
