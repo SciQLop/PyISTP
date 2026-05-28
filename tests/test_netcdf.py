@@ -22,8 +22,12 @@ AC_MFI = os.path.join(
 ICON_NC = os.path.join(
     os.path.dirname(__file__), "resources", "icon_l2-6_euv_20220307_v03r004.nc"
 )
-ICON_MASTER = os.path.join(
-    os.path.dirname(__file__), "resources", "icon_l2-6_euv_00000000_v01.cdf"
+
+DAILI_NC = os.path.join(
+    os.path.dirname(__file__), "resources", "daili_l2_o2-density-profiles_20220303_v7.nc"
+)
+DAILI_MASTER = os.path.join(
+    os.path.dirname(__file__), "resources", "daili_l2_o2-density-profiles_00000000_v01.cdf"
 )
 
 
@@ -339,4 +343,11 @@ class TestLoadNetCDF:
         loader = pyistp.load(file=ICON_NC)
         var = loader.data_variable(loader.data_variables()[0])
         assert var is not None
+
+    def test_nc_with_cdf_master(self):
+        loader = pyistp.load(file=DAILI_NC, master_file=DAILI_MASTER)
+        assert len(loader.data_variables()) > 0
+        var = loader.data_variable(loader.data_variables()[0])
+        assert var is not None
+        assert var.axes[0].values.dtype == np.dtype("datetime64[ns]")
         assert var.axes[0].values.dtype == np.dtype("datetime64[ns]")
