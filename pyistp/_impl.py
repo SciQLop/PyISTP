@@ -7,7 +7,7 @@ def _driver_factory(file_or_buffer):
     else:
         with open(file_or_buffer, "rb") as f:
             magic = f.read(4)
-    if magic == b'\x89HDF':
+    if magic in (b'\x89HDF', b'CDF'):
         from .drivers.netcdf import Driver as NetCDFDriver
         return NetCDFDriver(file_or_buffer)
     return current_driver(file_or_buffer)
