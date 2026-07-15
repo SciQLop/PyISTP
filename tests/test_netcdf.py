@@ -287,9 +287,13 @@ class TestNetCDFDriver:
     def test_icon_epoch_cdf_type_is_time(self, drv_icon):
         assert drv_icon.cdf_type("Epoch") == "CDF_TIME_TT2000"
 
-    # Thread safety — the underlying netCDF-C/HDF5 library is not
-    # thread-safe, so concurrent Driver calls must be serialized. A crash
-    # (segfault) kills the whole process, so this must run out-of-process.
+    # Thread safety — netCDF-C/HDF5 is not thread-safe even under a
+    # global mutex (github.com/Unidata/netcdf-c/issues/2496), so a lock
+    # alone cannot prevent native crashes. pyistp.drivers.netcdf routes
+    # all calls to a dedicated subprocess instead, so a crash there
+    # surfaces as an ordinary Python exception here rather than taking
+    # the caller down. This must still run out-of-process: it exercises
+    # that containment, not the absence of the underlying HDF5 bug.
 
     def test_concurrent_access_does_not_crash(self):
         script = textwrap.dedent(f"""
