@@ -1,57 +1,73 @@
+import threading
+
 import netCDF4
 import numpy as np
 from typing import Any
+
+# The netCDF-C/HDF5 libraries netCDF4 wraps are not thread-safe, even across
+# distinct Dataset instances. Serialize all access with a single process-wide
+# lock to avoid crashes when variables are loaded from multiple threads.
+_LOCK = threading.Lock()
 
 
 class Driver:
     """NetCDF4 driver implementing the PyISTP Driver protocol."""
 
     def __init__(self, file):
-        # Accept either a file path (str) or a bytes buffer
-        if isinstance(file, bytes):
-            self._ds = netCDF4.Dataset("in_memory.nc", memory=file)
-        else:
-            self._ds = netCDF4.Dataset(str(file), "r")
+        with _LOCK:
+            # Accept either a file path (str) or a bytes buffer
+            if isinstance(file, bytes):
+                self._ds = netCDF4.Dataset("in_memory.nc", memory=file)
+            else:
+                self._ds = netCDF4.Dataset(str(file), "r")
 
     def variables(self):
-        return list(self._ds.variables.keys())
+        with _LOCK:
+            return list(self._ds.variables.keys())
 
     def has_variable(self, name):
-        return name in self._ds.variables
+        with _LOCK:
+            return name in self._ds.variables
 
     def variable_attributes(self, var):
-        if var not in self._ds.variables:
-            return []
-        return list(self._ds[var].ncattrs())
+        with _LOCK:
+            if var not in self._ds.variables:
+                return []
+            return list(self._ds[var].ncattrs())
 
     def variable_attribute_value(self, var, attr):
-        if var not in self._ds.variables:
-            return None
-        try:
-            return self._ds[var].getncattr(attr)
-        except AttributeError:
-            return None
+        with _LOCK:
+            if var not in self._ds.variables:
+                return None
+            try:
+                return self._ds[var].getncattr(attr)
+            except AttributeError:
+                return None
 
     def is_char(self, var):
-        if var not in self._ds.variables:
-            return False
-        return self._ds[var].dtype == str
+        with _LOCK:
+            if var not in self._ds.variables:
+                return False
+            return self._ds[var].dtype == str
 
     def is_nrv(self, var):  # NOSONAR
         # NRV concept does not exist in NetCDF4
         return False
 
     def shape(self, var):
-        return tuple(self._ds[var].shape)
+        with _LOCK:
+            return tuple(self._ds[var].shape)
 
     def attributes(self):
-        return list(self._ds.ncattrs())
+        with _LOCK:
+            return list(self._ds.ncattrs())
 
     def attribute(self, key):
-        try:
-            return self._ds.getncattr(key)
-        except AttributeError:
-            return None
+        with _LOCK:
+            try:
+                return self._ds.getncattr(key)
+            except AttributeError:
+                return None
 
     # Mapping from numpy dtype kinds to CDF type strings
     _DTYPE_TO_CDF = {
@@ -119,28 +135,31 @@ class Driver:
         return (ms * 1_000_000).astype('datetime64[ns]')
 
     def values(self, var, is_metadata_variable=False):  # NOSONAR
-        v = self._ds[var]
-        if self._is_cf_time(var):
-            return self._cf_time_to_datetime64(var)
-        if self._is_cdf_epoch(var):
-            return self._cdf_epoch_to_datetime64(var)
-        if self._is_unix_ms_time(var):
-            return self._unix_ms_time_to_datetime64(var)
-        if v.dtype == str:
-            # Native NetCDF4 string — return as numpy array of strings
-            raw = v[()]
-            if isinstance(raw, str):
-                raw = [raw]
-            return np.array(raw)
-        return np.array(v[:])
+        with _LOCK:
+            v = self._ds[var]
+            if self._is_cf_time(var):
+                return self._cf_time_to_datetime64(var)
+            if self._is_cdf_epoch(var):
+                return self._cdf_epoch_to_datetime64(var)
+            if self._is_unix_ms_time(var):
+                return self._unix_ms_time_to_datetime64(var)
+            if v.dtype == str:
+                # Native NetCDF4 string — return as numpy array of strings
+                raw = v[()]
+                if isinstance(raw, str):
+                    raw = [raw]
+                return np.array(raw)
+            return np.array(v[:])
 
     def cdf_type(self, var):
-        if self._is_cf_time(var) or self._is_unix_ms_time(var):
-            return 'CDF_TIME_TT2000'
-        if self._is_cdf_epoch(var):
-            return 'CDF_EPOCH'
-        v = self._ds[var]
-        if v.dtype == str:
-            return 'CDF_CHAR'
-        dtype_str = v.dtype.str.lstrip('<>=!')
-        return self._DTYPE_TO_CDF.get(dtype_str, f'CDF_UNKNOWN_{dtype_str}')
+        with _LOCK:
+            if self._is_cf_time(var) or self._is_unix_ms_time(var):
+                return 'CDF_TIME_TT2000'
+            if self._is_cdf_epoch(var):
+                return 'CDF_EPOCH'
+            v = self._ds[var]
+            if v.dtype == str:
+                return 'CDF_CHAR'
+            dtype_str = v.dtype.str.lstrip('<>=!')
+            return self._DTYPE_TO_CDF.get(
+                dtype_str, f'CDF_UNKNOWN_{dtype_str}')

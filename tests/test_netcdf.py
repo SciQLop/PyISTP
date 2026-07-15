@@ -7,6 +7,9 @@ Two test classes:
 """
 
 import os
+import subprocess
+import sys
+import textwrap
 
 import netCDF4
 import numpy as np
@@ -283,6 +286,39 @@ class TestNetCDFDriver:
 
     def test_icon_epoch_cdf_type_is_time(self, drv_icon):
         assert drv_icon.cdf_type("Epoch") == "CDF_TIME_TT2000"
+
+    # Thread safety — the underlying netCDF-C/HDF5 library is not
+    # thread-safe, so concurrent Driver calls must be serialized. A crash
+    # (segfault) kills the whole process, so this must run out-of-process.
+
+    def test_concurrent_access_does_not_crash(self):
+        script = textwrap.dedent(f"""
+            import threading
+            from pyistp.drivers.netcdf import Driver
+
+            path = {AC_MFI!r}
+
+            def worker():
+                for _ in range(50):
+                    d = Driver(path)
+                    for v in d.variables():
+                        d.values(v)
+                        d.cdf_type(v)
+                        d.variable_attributes(v)
+
+            threads = [threading.Thread(target=worker) for _ in range(16)]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
+        """)
+        result = subprocess.run(
+            [sys.executable, "-c", script], timeout=120
+        )
+        assert result.returncode == 0, (
+            f"Concurrent netCDF4 access crashed with return code "
+            f"{result.returncode} (likely a segfault)"
+        )
 
     # Bytes input
 
