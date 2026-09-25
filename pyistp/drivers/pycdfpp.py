@@ -14,7 +14,12 @@ def _drop_first_dim_if_nrv(is_nrv: bool, values):
 
 class Driver:
     def __init__(self, file):
-        self.cdf = pycdfpp.load(file)
+        # An invalid CDF gives an empty driver: pycdfpp < 0.13 returns None, newer versions raise
+        # ValueError.
+        try:
+            self.cdf = pycdfpp.load(file)
+        except ValueError:
+            self.cdf = None
 
     def attributes(self):
         if self.cdf:

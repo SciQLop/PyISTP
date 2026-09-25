@@ -66,6 +66,18 @@ test_data = (
 )
 
 
+class TestUnreadableFiles(unittest.TestCase):
+    """Same behaviour with any pycdfpp version: pycdfpp.load returns None for an invalid CDF
+    in older versions, and raises ValueError in newer ones."""
+
+    def test_invalid_buffer_gives_an_empty_loader(self):
+        self.assertEqual(pyistp.load(buffer=b"not a CDF file").data_variables(), [])
+
+    def test_missing_file_raises(self):
+        with self.assertRaises(FileNotFoundError):
+            pyistp.load(file="/nonexistent/missing.cdf")
+
+
 @ddt
 class TestPyIstp(unittest.TestCase):
 
