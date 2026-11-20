@@ -205,3 +205,24 @@ def worker_main(conn):
             conn.send(('err', exc))
     for driver in drivers.values():
         driver.close()
+
+
+def _serve():
+    """Entry point of `python -m pyistp.drivers._netcdf_worker`, started by pyistp.drivers.netcdf.
+
+    The parent sends the connection key on stdin and reads the address back from stdout.
+    """
+    import sys
+    from multiprocessing.connection import Listener
+    authkey = bytes.fromhex(sys.stdin.readline().strip())
+    with Listener(authkey=authkey) as listener:
+        print(repr(listener.address), flush=True)
+        # Nobody reads stdout after the address: send anything printed later to stderr.
+        os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
+        sys.stdout = sys.stderr
+        with listener.accept() as conn:
+            worker_main(conn)
+
+
+if __name__ == "__main__":
+    _serve()

@@ -7,11 +7,15 @@ over a pipe, matching Unidata's own recommendation to use process-based
 rather than thread-based parallelism around netCDF4.
 """
 
+import ast
 import atexit
-import multiprocessing
+import os
+import subprocess
+import sys
 import threading
+from multiprocessing import spawn
+from multiprocessing.connection import Client
 
-_CTX = multiprocessing.get_context("spawn")
 _process = None
 _conn = None
 _start_lock = threading.Lock()
@@ -20,21 +24,38 @@ _call_lock = threading.Lock()
 
 def _ensure_worker():
     global _process, _conn
-    if _process is not None and _process.is_alive():
+    if _is_alive(_process):
         return
     with _start_lock:
-        if _process is not None and _process.is_alive():
+        if _is_alive(_process):
             return
-        from ._netcdf_worker import worker_main
-        parent_conn, child_conn = _CTX.Pipe()
-        process = _CTX.Process(
-            target=worker_main, args=(child_conn,), daemon=True,
-            name="pyistp-netcdf-worker",
+        _process, _conn = _start_worker()
+
+
+def _start_worker():
+    """Start the worker as a module, not with multiprocessing's "spawn": spawn re-runs the user's
+    script to rebuild __main__, and a script without an `if __name__ == "__main__":` guard then
+    tries to start a worker during the child's bootstrap, which kills it."""
+    authkey = os.urandom(32)
+    process = subprocess.Popen(
+        [spawn.get_executable(), "-m", "pyistp.drivers._netcdf_worker"],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True,
+        env={**os.environ, "PYTHONPATH": os.pathsep.join(p for p in sys.path if p)},
+    )
+    process.stdin.write(authkey.hex() + "\n")
+    process.stdin.close()
+    address = process.stdout.readline()
+    process.stdout.close()
+    if not address:
+        process.wait()
+        raise RuntimeError(
+            f"netCDF4 worker process failed to start (exit code {process.returncode}), see its error above"
         )
-        process.start()
-        child_conn.close()
-        _process = process
-        _conn = parent_conn
+    return process, Client(ast.literal_eval(address), authkey=authkey)
+
+
+def _is_alive(process):
+    return process is not None and process.poll() is None
 
 
 def _shutdown_worker():
@@ -42,13 +63,14 @@ def _shutdown_worker():
     if _process is None:
         return
     with _call_lock:
-        if _process is not None and _process.is_alive():
+        if _is_alive(_process):
             try:
                 _conn.send(('shutdown',))
             except (BrokenPipeError, OSError):
                 pass
-            _process.join(timeout=5)
-            if _process.is_alive():
+            try:
+                _process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
                 _process.terminate()
         _process = None
         _conn = None

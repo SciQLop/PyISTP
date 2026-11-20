@@ -331,6 +331,19 @@ class TestNetCDFDriver:
             f"should have contained this to a RuntimeError instead"
         )
 
+    def test_script_without_main_guard_can_read_netcdf(self, tmp_path):
+        # A "spawn" worker re-runs the user's script to rebuild __main__: without an
+        # `if __name__ == "__main__":` guard the re-run tries to start a worker of its
+        # own during bootstrap and dies. Must be a script file: `python -c` isn't re-run.
+        script = tmp_path / "user_script.py"
+        script.write_text(textwrap.dedent(f"""
+            import pyistp
+            print(len(pyistp.load(file={AC_MFI!r}).data_variables()))
+        """))
+        result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True, timeout=180)
+        assert result.returncode == 0, result.stderr
+        assert int(result.stdout.strip()) > 0
+
     # Bytes input
 
     def test_driver_accepts_bytes_input(self, nc_path):
