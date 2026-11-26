@@ -25,24 +25,35 @@ ISTP_NOT_COMPLIANT_W = "Non compliant ISTP file"
 log = logging.getLogger(__name__)
 
 
+# The attributes that give a variable's values their meaning. They come from the file the values come from: the
+# ISTP guidelines are silent on master against data file values, and a master can hold another file version's
+# constants (MMS FPI fast: Epoch_plus_var 150 ms in the master, 4.5 s in the data files).
+_VALUE_ATTRIBUTES = {'UNITS', 'SI_CONVERSION', 'FILLVAL', 'VALIDMIN', 'VALIDMAX'}
+
+
+def _attribute(cdf: Driver, var: str, attr: str):
+    value = cdf.variable_attribute_value(var, attr)
+    if not (attr.endswith("_PTR") or attr[:-1].endswith("_PTR_")):
+        return value
+    if not cdf.has_variable(value):
+        log.warning(f"{ISTP_NOT_COMPLIANT_W}: variable {var} has {attr} attribute which points to variable {value} "
+                    f"which does not exist")
+        return value
+    value = cdf.values(value, is_metadata_variable=True)
+    return value.tolist() if hasattr(value, 'tolist') else value
+
+
 def _get_attributes(master_cdf: Driver, cdf: Driver, var: str):
-    attrs = {}
-    for attr in master_cdf.variable_attributes(var):
-        value = master_cdf.variable_attribute_value(var, attr)
-        if attr.endswith("_PTR") or attr[:-1].endswith("_PTR_"):
-            if master_cdf.has_variable(value):
-                value = master_cdf.values(value, is_metadata_variable=True)
-                if hasattr(value, 'tolist'):
-                    attrs[attr] = value.tolist()
-                else:
-                    attrs[attr] = value
-            else:
-                log.warning(
-                    f"{ISTP_NOT_COMPLIANT_W}: variable {var} has {attr} attribute which points to variable {value} which does not exist")
-                attrs[attr] = value
-        else:
-            attrs[attr] = value
-    return attrs
+    """``var``'s attributes, its values being read from ``cdf``: that file's own attributes, overridden by the master's
+    descriptive ones as CDAWeb does (https://cdaweb.gsfc.nasa.gov/pub/software/cdawlib/0MASTERS/00readme.txt: "the
+    attributes in the Master CDFs will over-ride the values in the data files"), but never by the master's
+    value attributes."""
+    own = {attr: _attribute(cdf, var, attr) for attr in cdf.variable_attributes(var)}
+    if cdf is master_cdf or not master_cdf.has_variable(var):
+        return own
+    patches = {attr: _attribute(master_cdf, var, attr) for attr in master_cdf.variable_attributes(var)
+               if attr.upper() not in _VALUE_ATTRIBUTES}
+    return {**own, **patches}
 
 
 def _get_axis(master_cdf: Driver, cdf: Driver, axis_var: str, data_var: str):
@@ -103,6 +114,11 @@ def _load_data_var(master_cdf: Driver, cdf: Driver, var: str) -> DataVariable or
     return DataVariable(name=var, values=values, attributes=attributes, axes=axes, cdf_type=cdf_type, labels=labels)
 
 
+def _is_a_space(value) -> bool:
+    entries = [value] if isinstance(value, str) else list(value) if value is not None else []
+    return len(entries) == 1 and entries[0] == " "
+
+
 class ISTPLoaderImpl:
     cdf: Optional[Driver] = None
 
@@ -121,7 +137,12 @@ class ISTPLoaderImpl:
         return self.master_cdf.attributes()
 
     def attribute(self, key):
-        return self.master_cdf.attribute(key)
+        """A master value of a single space means the data file's, per
+        https://cdaweb.gsfc.nasa.gov/pub/software/cdawlib/0MASTERS/00readme.txt"""
+        value = self.master_cdf.attribute(key)
+        if _is_a_space(value) and key in self.cdf.attributes():
+            return self.cdf.attribute(key)
+        return value
 
     def _update_data_vars_lis(self):
         if self.master_cdf:
